@@ -28,6 +28,10 @@ if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
     done
 fi
 
+if [ "${RUN_SEEDERS:-true}" = "true" ]; then
+    php artisan db:seed --force || true
+fi
+
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
