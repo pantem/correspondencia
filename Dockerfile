@@ -25,13 +25,13 @@ RUN npm run build
 FROM php:8.3-fpm-alpine AS runtime
 
 RUN apk add --no-cache \
-        nginx supervisor curl gettext \
-        icu-libs libpng libjpeg-turbo freetype libwebp libxml2 oniguruma libzip \
+         nginx supervisor curl gettext \
+         icu-libs libpng libjpeg-turbo freetype libwebp libxml2 oniguruma libzip libpq \
     && apk add --no-cache --virtual .build-deps \
         icu-dev libpng-dev libjpeg-turbo-dev freetype-dev libwebp-dev \
-        oniguruma-dev zlib-dev libzip-dev linux-headers $PHPIZE_DEPS \
+        oniguruma-dev zlib-dev libzip-dev postgresql-dev linux-headers $PHPIZE_DEPS \
     && docker-php-ext-install -j"$(nproc)" \
-        pdo_mysql mbstring zip gd bcmath intl opcache \
+        pdo_pgsql pgsql mbstring zip gd bcmath intl opcache \
     && apk del .build-deps \
     && rm -rf /tmp/* /var/cache/apk/*
 

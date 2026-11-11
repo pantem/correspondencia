@@ -9,7 +9,7 @@ Aplicación web para registrar, digitalizar, turnar, dar seguimiento y atender l
 | Backend | PHP 8.3 + Laravel 13 (API REST + SPA fallback) |
 | Frontend | Vue 3 + Vite + Pinia + Vue Router + Tailwind CSS 4 |
 | Auth | Laravel Sanctum (token Bearer) + roles/permisos (Gate `can:`) |
-| Base de datos | MySQL 8.4 (local Docker / Render) |
+| Base de datos | PostgreSQL (servidor corporativo; local vía Docker) |
 | Almacenamiento | Disco privado (`storage/app/private`), driver intercambiable vía `FILESYSTEM_DISK` (local \| s3) |
 | Correo (dev) | Mailpit (`localhost:8025`) |
 | Deploy | Docker (Dockerfile multi-stage) + `render.yaml` (Render) |

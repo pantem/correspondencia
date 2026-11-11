@@ -19,7 +19,7 @@ use App\Services\DocumentFilters;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
 {
@@ -129,15 +129,15 @@ class DocumentController extends Controller
         return new ArchivoResource($archivo);
     }
 
-    public function showArchivo(Request $request, Document $document, Archivo $archivo): BinaryFileResponse
+    public function showArchivo(Request $request, Document $document, Archivo $archivo): StreamedResponse
     {
         abort_unless($archivo->document_id === $document->id, 404);
 
-        $path = Storage::disk(config('filesystems.default'))->path($archivo->path);
+        $disk = Storage::disk(config('filesystems.default'));
 
-        abort_unless(is_file($path), 404);
+        abort_unless($disk->exists($archivo->path), 404);
 
-        return response()->file($path, [
+        return $disk->response($archivo->path, $archivo->original_name, [
             'Content-Disposition' => 'inline; filename="'.$archivo->original_name.'"',
         ]);
     }

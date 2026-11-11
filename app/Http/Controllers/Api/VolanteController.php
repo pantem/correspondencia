@@ -12,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class VolanteController extends Controller
 {
@@ -77,17 +77,17 @@ class VolanteController extends Controller
     /**
      * Descarga del PDF del volante (RF-33).
      */
-    public function pdf(Request $request, Volante $volante): BinaryFileResponse
+    public function pdf(Request $request, Volante $volante): StreamedResponse
     {
         $this->authorize('documents.view');
 
-        $path = Storage::disk(config('filesystems.default'))->path($volante->path);
+        $disk = Storage::disk(config('filesystems.default'));
 
-        abort_unless(is_file($path), 404);
+        abort_unless($disk->exists($volante->path), 404);
 
         $folio = $volante->turno?->document?->folio ?? $volante->id;
 
-        return response()->file($path, [
+        return $disk->response($volante->path, 'volante-'.$folio.'-v'.$volante->version.'.pdf', [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="volante-'.$folio.'-v'.$volante->version.'.pdf"',
         ]);

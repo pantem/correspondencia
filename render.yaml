@@ -4,7 +4,7 @@
 # - Render NO ofrece PostgreSQL/MySQL gestionado gratuito. Sus opciones:
 #   a) Postgres gestionado de Render (de pago, desde ~$7/mes)  → cambiar DB_CONNECTION a pgsql
 #   b) MySQL en una instancia propia con persistent disk (de pago)
-#   c) MySQL externo (Aiven, PlanetScale, Railway, RDS, etc.) → solo variables de entorno
+#   c) MySQL externo (freesqldatabase, Aiven, PlanetScale, Railway, RDS, etc.) → solo variables de entorno
 # - Este archivo asume (c): una BD MySQL externa cuyas credenciales se inyectan
 #   como variables de entorno en el dashboard de Render (o desde este blueprint).
 #
@@ -39,7 +39,13 @@ services:
       - key: SESSION_SECURE_COOKIE
         value: "true"
       - key: DB_CONNECTION
-        value: mysql
+        value: pgsql
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_PREFIX
+        value: crrc_
+      - key: DB_SSLMODE
+        value: require
       # DB_HOST / DB_PORT / DB_DATABASE / DB_USERNAME / DB_PASSWORD:
       # definirlos en el dashboard de Render (secretos) apuntando a la MySQL externa.
       - key: DB_HOST
@@ -53,16 +59,19 @@ services:
       - key: MAIL_MAILER
         value: log          # pendiente definir notificaciones (doc §13.8)
       - key: FILESYSTEM_DISK
-        value: local        # local (requiere persistent disk) | s3 (R2/B2)
-      # Para FILESYSTEM_DISK=s3 descomentar:
-      # - key: AWS_BUCKET
-      #   sync: false
-      # - key: AWS_ENDPOINT
-      #   sync: false
-      # - key: AWS_ACCESS_KEY_ID
-      #   sync: false
-      # - key: AWS_SECRET_ACCESS_KEY
-      #   sync: false
+        value: s3
+      - key: AWS_BUCKET
+        value: oficios
+      - key: AWS_ENDPOINT
+        value: https://7be10c9cbcc3d9b59b7d66768f8cddcc.r2.cloudflarestorage.com
+      - key: AWS_DEFAULT_REGION
+        value: auto
+      - key: AWS_USE_PATH_STYLE_ENDPOINT
+        value: "true"
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
     # Si se elige FILESYSTEM_DISK=local, adjuntar un persistent disk:
     # disk:
     #   name: correspondencia-pdfs
