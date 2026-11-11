@@ -1,0 +1,71 @@
+# Plantilla de referencia para Render — AJUSTAR cuando se defina el entorno de despliegue.
+#
+# IMPORTANTE (noviembre 2026):
+# - Render NO ofrece PostgreSQL/MySQL gestionado gratuito. Sus opciones:
+#   a) Postgres gestionado de Render (de pago, desde ~$7/mes)  → cambiar DB_CONNECTION a pgsql
+#   b) MySQL en una instancia propia con persistent disk (de pago)
+#   c) MySQL externo (Aiven, PlanetScale, Railway, RDS, etc.) → solo variables de entorno
+# - Este archivo asume (c): una BD MySQL externa cuyas credenciales se inyectan
+#   como variables de entorno en el dashboard de Render (o desde este blueprint).
+#
+# Uso: subir el repo a GitHub → Render → New → Blueprint → elegir este render.yaml.
+
+services:
+  - type: web
+    name: correspondencia
+    runtime: docker
+    plan: starter          # free también funciona (con spin-down); starter evita el apagado
+    healthCheckPath: /up
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        fromService:
+          name: correspondencia
+          type: web
+          property: host
+      - key: APP_KEY
+        generateValue: true
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: DB_CONNECTION
+        value: mysql
+      # DB_HOST / DB_PORT / DB_DATABASE / DB_USERNAME / DB_PASSWORD:
+      # definirlos en el dashboard de Render (secretos) apuntando a la MySQL externa.
+      - key: DB_HOST
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: MAIL_MAILER
+        value: log          # pendiente definir notificaciones (doc §13.8)
+      - key: FILESYSTEM_DISK
+        value: local        # local (requiere persistent disk) | s3 (R2/B2)
+      # Para FILESYSTEM_DISK=s3 descomentar:
+      # - key: AWS_BUCKET
+      #   sync: false
+      # - key: AWS_ENDPOINT
+      #   sync: false
+      # - key: AWS_ACCESS_KEY_ID
+      #   sync: false
+      # - key: AWS_SECRET_ACCESS_KEY
+      #   sync: false
+    # Si se elige FILESYSTEM_DISK=local, adjuntar un persistent disk:
+    # disk:
+    #   name: correspondencia-pdfs
+    #   mountPath: /var/www/html/storage/app
+    #   sizeGB: 5
+    # (requiere plan de pago; impide escalar a múltiples instancias)

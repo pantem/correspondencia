@@ -1,0 +1,51 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    env_file: .env
+    environment:
+      APP_URL: "http://localhost:${APP_PORT:-8080}"
+      PORT: "8080"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      SESSION_SECURE_COOKIE: "false"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    volumes:
+      - app_storage:/var/www/html/storage/app
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: correspondencia
+      MYSQL_USER: correspondencia
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootsecret"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  app_storage:
