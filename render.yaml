@@ -41,7 +41,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_PORT
-        value: "5432"
+        value: "6543"
       - key: DB_PREFIX
         value: crrc_
       - key: DB_SSLMODE
