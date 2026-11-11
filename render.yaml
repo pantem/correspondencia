@@ -46,6 +46,8 @@ services:
         value: crrc_
       - key: DB_SSLMODE
         value: require
+      - key: DB_TIMEOUT
+        value: "30"
       # DB_HOST / DB_PORT / DB_DATABASE / DB_USERNAME / DB_PASSWORD:
       # definirlos en el dashboard de Render (secretos) apuntando a la MySQL externa.
       - key: DB_HOST
