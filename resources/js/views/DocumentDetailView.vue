@@ -559,9 +559,13 @@ function claseMovimiento(tipo) {
                         class="flex items-center justify-between gap-2 rounded border px-3 py-2"
                     >
                         <div class="min-w-0">
-                            <a :href="archivo.url" target="_blank" class="block truncate text-primary-700 hover:underline">
+                            <button
+                                type="button"
+                                class="block truncate text-left text-primary-700 hover:underline"
+                                @click="abrirEnNuevaVentana(archivo.url, archivo.mime_type)"
+                            >
                                 {{ archivo.original_name }}
-                            </a>
+                            </button>
                             <span class="text-xs text-gray-500">
                                 {{ archivo.tipo }} · {{ (archivo.size / 1024).toFixed(1) }} KB
                             </span>
@@ -991,13 +995,13 @@ function claseMovimiento(tipo) {
                         </label>
                         <ul v-if="mov.archivos?.length" class="flex flex-wrap gap-2">
                             <li v-for="archivo in mov.archivos" :key="archivo.id" class="text-xs">
-                                <a
-                                    :href="archivo.url"
-                                    target="_blank"
+                                <button
+                                    type="button"
                                     class="text-primary-700 hover:underline"
+                                    @click="abrirEnNuevaVentana(archivo.url, archivo.mime_type)"
                                 >
                                     {{ archivo.original_name }} (v{{ archivo.version }})
-                                </a>
+                                </button>
                             </li>
                         </ul>
                     </div>
