@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\EstadoDocumento;
 use App\Enums\EstadoTurno;
 use App\Enums\TipoMovimiento;
 use App\Models\Document;
@@ -91,6 +92,10 @@ class TurnarDocumento
                 );
 
                 $creados->push($turno->setRelation('movimientoInicial', $movimiento));
+            }
+
+            if ($documento->estado === EstadoDocumento::Registrado) {
+                $documento->update(['estado' => EstadoDocumento::EnTramite]);
             }
 
             return $creados;

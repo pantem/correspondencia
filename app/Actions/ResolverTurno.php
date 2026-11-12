@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\EstadoDocumento;
 use App\Enums\EstadoTurno;
 use App\Enums\TipoMovimiento;
 use App\Models\Turno;
@@ -35,6 +36,8 @@ class ResolverTurno
             'resuelto_por_id' => $usuario->id,
             'resuelto_at' => now(),
         ]);
+
+        $turno->document?->update(['estado' => EstadoDocumento::Resuelto]);
 
         $turno->movimientos()->create([
             'tipo' => TipoMovimiento::Resolucion,
