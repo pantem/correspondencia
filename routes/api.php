@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Acuse de recibo digitalizado por movimiento (RF-47, RF-50).
     Route::post('/movimientos/{movimiento}/acuse', [MovimientoController::class, 'subirAcuse'])->middleware('can:documents.upload')->name('movimientos.acuse.store');
+    Route::post('/movimientos/{movimiento}/resolucion', [MovimientoController::class, 'subirResolucion'])->middleware('can:documents.upload')->name('movimientos.resolucion.store');
 
     Route::middleware('can:documents.turn')->group(function () {
         Route::post('/documents/{document}/turnos', [TurnoController::class, 'store'])->name('documents.turnos.store');

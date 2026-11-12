@@ -59,4 +59,38 @@ class MovimientoController extends Controller
 
         return new ArchivoResource($archivo->load('uploader:id,name'));
     }
+
+    public function subirResolucion(SubirAcuseRequest $request, Movimiento $movimiento): ArchivoResource
+    {
+        $file = $request->file('archivo');
+        $hash = hash_file('sha256', $file->getRealPath());
+        $documento = $movimiento->turno->document;
+
+        $ruta = $file->store(
+            'documentos/'.$documento->folio.'/resoluciones',
+            config('filesystems.default'),
+        );
+
+        $archivo = $movimiento->archivos()->create([
+            'document_id' => $documento->id,
+            'tipo' => TipoArchivo::Resolucion,
+            'original_name' => $file->getClientOriginalName(),
+            'path' => $ruta,
+            'sha256' => $hash,
+            'size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+            'uploaded_by' => $request->user()->id,
+        ]);
+
+        $this->auditoria->registrar(
+            $request->user(),
+            'resolucion.cargada',
+            $archivo,
+            null,
+            $archivo->toArray(),
+            $request,
+        );
+
+        return new ArchivoResource($archivo->load('uploader:id,name'));
+    }
 }

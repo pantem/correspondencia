@@ -30,6 +30,8 @@ const historial = ref([]);
 const cargandoHistorial = ref(false);
 const acuseInputs = ref({});
 const subiendoAcuse = ref({});
+const resolucionInputs = ref({});
+const subiendoResolucionMov = ref({});
 const correccion = reactive({
     abierta: false,
     area_destino_id: '',
@@ -354,6 +356,31 @@ async function subirAcuse(movimientoId, event) {
     }
 }
 
+async function subirResolucionMovimiento(movimientoId, event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    subiendoResolucionMov.value[movimientoId] = true;
+    error.value = '';
+    try {
+        const data = new FormData();
+        data.append('archivo', file);
+        await client.post(`/movimientos/${movimientoId}/resolucion`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        await Promise.all([cargarTurnos(), cargarHistorial()]);
+    } catch (err) {
+        if (err.response?.status === 422) {
+            error.value = Object.values(err.response.data.errors || {}).flat().join(' ');
+        } else {
+            error.value = 'No se pudo cargar la resolución.';
+        }
+    } finally {
+        subiendoResolucionMov.value[movimientoId] = false;
+        if (resolucionInputs.value[movimientoId]) resolucionInputs.value[movimientoId].value = '';
+    }
+}
+
 function abrirCorreccion(turno) {
     correccion.abierta = true;
     correccion.area_destino_id = turno.area_destino?.id || '';
@@ -607,42 +634,23 @@ function claseMovimiento(tipo) {
                     Sin archivos. Adjunte el PDF original escaneado.
                 </p>
 
-                <div v-if="auth.has('documents.upload')" class="mt-4 space-y-3">
-                    <div>
-                        <label class="block text-sm font-medium">Cargar PDF</label>
-                        <label
-                            class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-                            :class="{ 'opacity-50 pointer-events-none': subiendo }"
-                        >
-                            <span>{{ subiendo ? 'Subiendo…' : 'Seleccionar PDF' }}</span>
-                            <input
-                                ref="archivoInput"
-                                type="file"
-                                accept="application/pdf"
-                                class="hidden"
-                                :disabled="subiendo"
-                                @change="subirArchivo"
-                            />
-                        </label>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium">Cargar resolución</label>
-                        <label
-                            class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded border border-primary-600 px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50"
-                            :class="{ 'opacity-50 pointer-events-none': subiendoResolucion }"
-                        >
-                            <span>{{ subiendoResolucion ? 'Subiendo…' : 'Seleccionar resolución (PDF)' }}</span>
-                            <input
-                                ref="resolucionInput"
-                                type="file"
-                                accept="application/pdf"
-                                class="hidden"
-                                :disabled="subiendoResolucion"
-                                @change="subirResolucion"
-                            />
-                        </label>
-                    </div>
-                    <p class="text-xs text-gray-400">Máximo 20 MB. Solo archivos PDF.</p>
+                <div v-if="auth.has('documents.upload')" class="mt-4">
+                    <label class="block text-sm font-medium">Cargar PDF</label>
+                    <label
+                        class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+                        :class="{ 'opacity-50 pointer-events-none': subiendo }"
+                    >
+                        <span>{{ subiendo ? 'Subiendo…' : 'Seleccionar PDF' }}</span>
+                        <input
+                            ref="archivoInput"
+                            type="file"
+                            accept="application/pdf"
+                            class="hidden"
+                            :disabled="subiendo"
+                            @change="subirArchivo"
+                        />
+                    </label>
+                    <p class="mt-2 text-xs text-gray-400">Máximo 20 MB. Solo archivos PDF.</p>
                 </div>
             </section>
         </div>
@@ -1038,6 +1046,34 @@ function claseMovimiento(tipo) {
                                 class="hidden"
                                 :disabled="subiendoAcuse[mov.id]"
                                 @change="subirAcuse(mov.id, $event)"
+                            />
+                        </label>
+                        <ul v-if="mov.archivos?.length" class="flex flex-wrap gap-2">
+                            <li v-for="archivo in mov.archivos" :key="archivo.id" class="text-xs">
+                                <button
+                                    type="button"
+                                    class="text-primary-700 hover:underline"
+                                    @click="abrirEnNuevaVentana(archivo.url, archivo.mime_type)"
+                                >
+                                    {{ archivo.original_name }} (v{{ archivo.version }})
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div v-if="mov.tipo === 'resolucion'" class="mt-3 flex flex-wrap items-center gap-2">
+                        <label
+                            v-if="auth.has('documents.upload')"
+                            class="inline-flex cursor-pointer items-center gap-2 rounded border px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
+                        >
+                            <span>{{ subiendoResolucionMov[mov.id] ? 'Subiendo…' : 'Cargar resolución' }}</span>
+                            <input
+                                :ref="(el) => (resolucionInputs[mov.id] = el)"
+                                type="file"
+                                accept="application/pdf"
+                                class="hidden"
+                                :disabled="subiendoResolucionMov[mov.id]"
+                                @change="subirResolucionMovimiento(mov.id, $event)"
                             />
                         </label>
                         <ul v-if="mov.archivos?.length" class="flex flex-wrap gap-2">
