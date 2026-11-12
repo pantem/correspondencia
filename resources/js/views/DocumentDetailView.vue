@@ -576,18 +576,21 @@ function claseMovimiento(tipo) {
                 </p>
 
                 <div v-if="auth.has('documents.upload')" class="mt-4">
-                    <label class="block text-sm font-medium">
-                        Cargar PDF
+                    <label class="block text-sm font-medium">Cargar PDF</label>
+                    <label
+                        class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+                        :class="{ 'opacity-50 pointer-events-none': subiendo }"
+                    >
+                        <span>{{ subiendo ? 'Subiendo…' : 'Seleccionar PDF' }}</span>
                         <input
                             ref="archivoInput"
                             type="file"
                             accept="application/pdf"
-                            class="mt-1 block w-full text-sm"
+                            class="hidden"
                             :disabled="subiendo"
                             @change="subirArchivo"
                         />
                     </label>
-                    <p v-if="subiendo" class="mt-1 text-xs text-gray-500">Subiendo…</p>
                     <p class="mt-2 text-xs text-gray-400">Máximo 20 MB. Solo archivos PDF.</p>
                 </div>
             </section>
