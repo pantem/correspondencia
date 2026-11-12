@@ -80,6 +80,7 @@ class TurnoController extends Controller
                 'movimientos as entrega_acuse_pendiente_count' => fn ($q) => $q
                     ->where('tipo', TipoMovimiento::Turnado)
                     ->where('acuse_pendiente', true),
+                'volantes',
             ])
             ->latest('id');
 

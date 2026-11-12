@@ -43,6 +43,7 @@ class TurnoResource extends JsonResource
                     ),
             ),
             'es_turnado_inicial' => $this->es_turnado_inicial,
+            'volante_generado' => (bool) ($this->resource->volantes_exists ?? false),
             'turno_padre_id' => $this->turno_padre_id,
             'turnado_por' => new UserResource($this->whenLoaded('turnadoPor')),
             'resuelto_por' => new UserResource($this->whenLoaded('resueltoPor')),

@@ -2,7 +2,7 @@
 import { onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import client from '../api/client';
-import { descargar } from '../api/descargar';
+import { abrirEnNuevaVentana, descargar } from '../api/descargar';
 
 const items = ref([]);
 const meta = ref(null);
@@ -10,6 +10,7 @@ const areas = ref([]);
 const error = ref('');
 const cargando = ref(false);
 const exportando = ref(false);
+const volanteGenerando = ref(null);
 
 const filtros = reactive({
     estado: '',
@@ -61,6 +62,27 @@ async function exportar() {
         error.value = err.response?.data?.message || 'No se pudo exportar la bandeja.';
     } finally {
         exportando.value = false;
+    }
+}
+
+async function imprimirVolante(turno) {
+    volanteGenerando.value = turno.id;
+    error.value = '';
+    try {
+        let volanteId = null;
+        const { data } = await client.get(`/turnos/${turno.id}/volantes`);
+        if (data.data?.length) {
+            volanteId = data.data[0].id;
+        } else {
+            const res = await client.post(`/turnos/${turno.id}/volantes`);
+            volanteId = res.data.data.id;
+        }
+        turno.volante_generado = true;
+        await abrirEnNuevaVentana(`/volantes/${volanteId}/pdf`);
+    } catch (err) {
+        error.value = err.response?.data?.message || 'No se pudo imprimir el volante.';
+    } finally {
+        volanteGenerando.value = null;
     }
 }
 
@@ -173,14 +195,15 @@ function claseEstado(estado) {
                         <th class="px-4 py-3">Responsable</th>
                         <th class="px-4 py-3">Plazo</th>
                         <th class="px-4 py-3">Acuse</th>
+                        <th class="px-4 py-3">Volante</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="cargando">
-                        <td colspan="8" class="px-4 py-6 text-center text-gray-500">Cargando…</td>
+                        <td colspan="9" class="px-4 py-6 text-center text-gray-500">Cargando…</td>
                     </tr>
                     <tr v-else-if="!items.length">
-                        <td colspan="8" class="px-4 py-6 text-center text-gray-500">Sin turnos que coincidan con los filtros.</td>
+                        <td colspan="9" class="px-4 py-6 text-center text-gray-500">Sin turnos que coincidan con los filtros.</td>
                     </tr>
                     <tr v-for="turno in items" :key="turno.id" class="border-b last:border-0 hover:bg-gray-50">
                         <td class="px-4 py-3">
@@ -221,6 +244,19 @@ function claseEstado(estado) {
                                 pendiente
                             </span>
                             <span v-else class="text-gray-400">—</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    class="rounded bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                                    :disabled="volanteGenerando === turno.id"
+                                    @click="imprimirVolante(turno)"
+                                >
+                                    {{ volanteGenerando === turno.id ? 'Generando…' : 'Imprimir volante' }}
+                                </button>
+                                <span v-if="turno.volante_generado" class="text-green-600" title="Volante generado">✓</span>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
