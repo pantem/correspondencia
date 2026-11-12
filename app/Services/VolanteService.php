@@ -7,7 +7,7 @@ use App\Models\Movimiento;
 use App\Models\Turno;
 use App\Models\User;
 use App\Models\Volante;
-use Barryvdh\DomPDF\Facade\PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Writer\PngWriter;
@@ -60,7 +60,7 @@ class VolanteService
             'qrImagen' => 'data:image/png;base64,'.base64_encode($qr->getString()),
         ])->render();
 
-        $contenido = PDF::loadHtml($html)->setPaper('letter')->output();
+        $contenido = Pdf::loadHtml($html)->setPaper('letter')->output();
 
         $ruta = 'volantes/turno-'.$turno->id.'/volante-'.$version.'.pdf';
         Storage::disk(config('filesystems.default'))->put($ruta, $contenido);
